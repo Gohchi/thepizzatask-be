@@ -2,13 +2,13 @@ const express = require('express')
 const app = express()
 const port = process.env.PORT || 3000
 
-const cors = require('cors');
-const corsOptions = {
-  origin: 'https://safe-cliffs-24219.herokuapp.com',
-  optionsSuccessStatus: 200
-}
-app.use(cors(corsOptions));
-app.options('*', cors());
+  const cors = require('cors');
+  const corsOptions = {
+    origin: process.env.NODE_ENV === "production" ? 'https://safe-cliffs-24219.herokuapp.com' : 'http://localhost:3000',
+    optionsSuccessStatus: 200
+  }
+  app.use(cors(corsOptions));
+  app.options('*', cors());
 
 app.get('/api', (req, res) => {
   res.status(200).json({api: 'version 1'})
