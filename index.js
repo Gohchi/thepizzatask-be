@@ -8,7 +8,7 @@ app.use(bodyParser.json());
 
 const cors = require('cors');
 const corsOptions = {
-  origin: process.env.NODE_ENV === "production" ? 'https://safe-cliffs-24219.herokuapp.com' : 'http://localhost:3000',
+  origin: process.env.NODE_ENV === "production" ? process.env.FE_URI : process.env.FE_URI_LOCAL,
   optionsSuccessStatus: 200
 }
 app.use(cors(corsOptions));
