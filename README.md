@@ -17,4 +17,6 @@ This project and the [Frontend](https://github.com/Gohchi/thepizzatask-fe) are d
 - [POST] /api/order: stores the order data.
 
 ## Test
-(woring on it)
+
+- service: calls the root [GET] /api and wait for a 200 response.
+- db: calls [GET] /api/products and check the correct amount of products.
