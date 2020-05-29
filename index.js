@@ -68,7 +68,7 @@ app.get('/api/products', (req, res) => {
       res.status(200).json({
         pizzas: result
       });
-    });
+    }, res);
   } else {
     res.status(200).json({
       pizzas: products
@@ -84,8 +84,8 @@ app.get('/api/orders', (req, res) => {
             items: items.filter(i => i.orderId == o.id).map(i => { return { id: i.pizzaId, amount: i.amount, price: i.price }; })
           }))
         );
-      })
-    });
+      }, res)
+    }, res);
   } else {
     res.status(200).json(localOrders);
   }
@@ -102,8 +102,8 @@ app.post('/api/order', (req, res) => {
         orders,
         items: result
       });
-    });
-  })
+    }, res);
+  }, res)
 })
 
 // app.get('/api/testdb', (req, res) => {
@@ -121,7 +121,7 @@ app.post('/api/order', (req, res) => {
 
 app.listen(port, () => console.log('server started on port', port))
 
-function call(query, data, callback){
+function call(query, data, callback, res){
   var connection = mysql.createConnection({
     host: process.env.DB_HOST,
     user: process.env.DB_USER,
@@ -131,19 +131,28 @@ function call(query, data, callback){
   })
 
   connection.connect()
-  
-  if(typeof data === 'object'){
-    connection.query(query, data, function (err, result) {
-      if (err) throw err;
-      callback(result);
-    });
-  } else {
-    callback = data;
-    connection.query(query, function (err, result) {
-      if (err) throw err;
-      callback(result);
-    });
+  try {
+    if(typeof data === 'object'){
+
+      connection.query(query, data, function (err, result) {
+        if (err) throw err;
+        callback(result);
+      });
+    } else {
+      res = callback;
+      callback = data;
+      connection.query(query, function (err, result) {
+        if (err) throw err;
+        callback(result);
+      });
+    }
+  } catch(e){
+    console.log(e);
+    res.status(500).json({
+      error: e
+    })
   }
+
   
   connection.end()
 }
