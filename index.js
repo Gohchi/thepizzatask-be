@@ -14,6 +14,11 @@ const corsOptions = {
 app.use(cors(corsOptions));
 app.options('*', cors());
 
+app.all('*', (req, res, next) => {
+  console.log('Request:', req.path );
+  next();
+})
+
 app.get('/api', (req, res) => {
   res.status(200).json({api: 'version 1'})
 })
@@ -88,26 +93,13 @@ app.get('/api/orders', (req, res) => {
 
 app.post('/api/order', (req, res) => {
   const data = req.body;
-  // let order = {
-  //   date: new Date(),
-  //   items: action.items.map(i => {
-  //     return {
-  //       id: i.id,
-  //       amount: i.amount,
-  //       price: i.price * i.amount
-  //     };
-  //   }),
-  //   currencyBase: action.currency.base,
-  //   currencyCode: action.currency.code
-  // };
 
-  let sql = `INSERT INTO orders (date, currencyBase, currencyCode) VALUES (now(), ${data.currency.base}, "${data.currency.code}");`;
-  call(sql, order => {
-    const itemsjoined = data.items.map(i => `(${order.Id}, ${i.id}, ${i.amount}, ${i.price * i.amount})`).join(', ');
-    sql = `INSERT INTO orderitems (orderId, pizzaId, amount, price) VALUES ${itemsjoined};`;
+  call('INSERT INTO orders SET ?', { currencyBase: data.currency.base, currencyCode: data.currency.code }, orders => {
+    const itemsjoined = data.items.map(i => `(${orders.insertId}, ${i.id}, ${i.amount}, ${i.price * i.amount})`).join(', ');
+    let sql = `INSERT INTO orderitems (orderId, pizzaId, amount, price) VALUES ${itemsjoined};`;
     call(sql, result => {
       res.status(200).json({
-        order,
+        orders,
         items: result
       });
     });
@@ -129,20 +121,29 @@ app.post('/api/order', (req, res) => {
 
 app.listen(port, () => console.log('server started on port', port))
 
-function call(query, callback){
+function call(query, data, callback){
   var connection = mysql.createConnection({
     host: process.env.DB_HOST,
     user: process.env.DB_USER,
     password: process.env.DB_PASS,
     database: process.env.DB_NAME,
+    connectTimeout: 30000
   })
 
   connection.connect()
   
-  connection.query(query, function (err, result) {
-    if (err) throw err;
-    callback(result);
-  });
+  if(typeof data === 'object'){
+    connection.query(query, data, function (err, result) {
+      if (err) throw err;
+      callback(result);
+    });
+  } else {
+    callback = data;
+    connection.query(query, function (err, result) {
+      if (err) throw err;
+      callback(result);
+    });
+  }
   
   connection.end()
 }
