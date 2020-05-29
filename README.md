@@ -15,3 +15,6 @@ This project and the [Frontend](https://github.com/Gohchi/thepizzatask-fe) are d
 - [GET] /api/products: returns a list of every pizza types.
 - [GET] /api/orders: returns a list of previous orders.
 - [POST] /api/order: stores the order data.
+
+## Test
+(woring on it)
